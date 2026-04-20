@@ -15,8 +15,7 @@ public partial class Plugin : IAssemblyPlugin
     public IPluginManagementService PluginManagementService { get; set; }
     public ILoggerService _loggerService { get; set; }
     public IConsoleCommandsService ConsoleCommandsService { get; set; }
-    public ISafeLuaUserDataService LuaUserDataService { get; set; }
-    public IEventService _eventService { get; set; }
+    //public IEventService _eventService { get; set; }
     public ILuaCsTimer _timerService { get; set; }
 #pragma warning restore CS8618
     public static ILoggerService LoggerService = null!;
@@ -32,7 +31,7 @@ public partial class Plugin : IAssemblyPlugin
         // When your plugin is loading, use this instead of the constructor for code relying on
         // the services above.
         LoggerService = _loggerService;
-        EventService = _eventService;
+        EventService = LuaCsSetup.Instance.EventService;
         TimerService = _timerService;
 
         if (!PluginManagementService.TryGetPackageForPlugin<Plugin>(out _package))
