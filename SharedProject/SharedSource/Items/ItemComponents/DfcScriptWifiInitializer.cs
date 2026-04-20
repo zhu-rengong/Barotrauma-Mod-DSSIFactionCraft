@@ -1,14 +1,45 @@
-﻿using System;
+﻿using Barotrauma;
+using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Barotrauma;
-using Barotrauma.Items.Components;
-using Microsoft.Xna.Framework;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal partial class DfcScriptWifiInitializer : ItemComponent
     {
+        public class EventItemCreated : IEventItemCreated
+        {
+            public void OnItemCreated(Item item)
+            {
+                wifiInitializerScripts.RemoveAll(script => script.item.Removed);
+                if (!wifiInitializerScripts.Any()) { return; }
+                EnqueueWifiInitialization(item);
+            }
+        }
+
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                Item.ItemList.ForEach(EnqueueWifiInitialization);
+            }
+        }
+
+        private static void EnqueueWifiInitialization(Item item)
+        {
+            if (item.GetComponent<WifiComponent>() is WifiComponent wifi)
+            {
+                wifiInitializerScripts.ForEach(script =>
+                {
+                    script.queueMessages.Enqueue(new(item, wifi));
+                    script.IsActive = true;
+                });
+            }
+        }
+
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         [InGameEditable(MaxValueFloat = int.MaxValue, MinValueFloat = 1f, ValueStep = 1f, DecimalCount = 0), Serialize("1000,9999", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
@@ -63,39 +94,8 @@ namespace DSSIFactionCraft.Items.Components
 
             wifiInitializerScripts = new();
 
-            GameMain.LuaCs.Hook.Add("item.created", nameof(DfcScriptWifiInitializer), itemCreated);
-            object itemCreated(params object[] args)
-            {
-                wifiInitializerScripts.RemoveAll(script => script.item.Removed);
-                if (!wifiInitializerScripts.Any()) { return default; }
-
-                if (args[0] is Item item && item.GetComponent<WifiComponent>() is WifiComponent wifiComponent)
-                {
-                    wifiInitializerScripts.ForEach(script =>
-                    {
-                        script.queueMessages.Enqueue(new(item, wifiComponent));
-                        script.IsActive = true;
-                    });
-                }
-                return default;
-            }
-
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcScriptWifiInitializer), roundStart);
-            object roundStart(params object[] args)
-            {
-                Item.ItemList.ForEach(item =>
-                {
-                    if (item.GetComponent<WifiComponent>() is WifiComponent wifi)
-                    {
-                        wifiInitializerScripts.ForEach(script =>
-                        {
-                            script.queueMessages.Enqueue(new(item, wifi));
-                            script.IsActive = true;
-                        });
-                    }
-                });
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventItemCreated>(new EventItemCreated());
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         readonly record struct EventMessage(Item SpawnedItem, WifiComponent Wifi);

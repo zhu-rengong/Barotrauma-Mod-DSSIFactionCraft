@@ -53,7 +53,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             var component = item.GetComponent<DfcNewFaction>();
             if (component == null) { return DynValue.Nil; }
-            var dynValue = DynValue.NewTable(GameMain.LuaCs.Lua);
+            var dynValue = DynValue.NewTable(LuaCsSetup.Instance.Lua);
             dynValue.Table["identifier"] = component.Identifier.IsNullOrEmpty() ? DynValue.Nil : component.Identifier;
             dynValue.Table["teamID"] = component.TeamID;
             dynValue.Table["maxLives"] = component.MaxLives;

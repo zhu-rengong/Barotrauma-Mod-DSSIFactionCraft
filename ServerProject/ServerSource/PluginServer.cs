@@ -26,7 +26,7 @@ namespace DSSIFactionCraft
         {
             static void Postfix(RespawnManager __instance)
             {
-                if (DfcModule.OverrideRespawnManager is DynValue { Type: DataType.Boolean, Boolean: true })
+                if (LuaAccessHelper.OverrideRespawnManager is DynValue { Type: DataType.Boolean, Boolean: true })
                 {
                     DfcRespawnManager = new();
                 }
@@ -40,9 +40,9 @@ namespace DSSIFactionCraft
             [HarmonyPrefix]
             static bool Override(RespawnManager __instance)
             {
-                if (DfcModule.Loaded is DynValue { Type: DataType.Table })
+                if (LuaAccessHelper.Loaded is DynValue { Type: DataType.Table })
                 {
-                    if (DfcModule.OverrideRespawnManager is DynValue { Type: DataType.Boolean, Boolean: true })
+                    if (LuaAccessHelper.OverrideRespawnManager is DynValue { Type: DataType.Boolean, Boolean: true })
                     {
                         DfcRespawnManager?.Update();
 

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Barotrauma;
-using Barotrauma.Extensions;
-using Barotrauma.Items.Components;
-using Microsoft.Xna.Framework;
+﻿using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
 using MoonSharp.Interpreter;
 using TargetType = DSSIFactionCraft.CharacterUtils.TargetType;
 
@@ -12,6 +7,14 @@ namespace DSSIFactionCraft.Items.Components
 {
     internal class DfcItemBatch : ItemComponent
     {
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                groupTriggers.Clear();
+            }
+        }
+
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         private string itemBatchUnit;
@@ -57,23 +60,23 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public string Identifier { get; set; }
 
-        private static Dictionary<string, List<Character>> groupTriggers;
+        private static Dictionary<string, List<Character>> groupTriggers = new();
 
         private string DebugName => $"{item}";
 
-        private static Table ItemBatchMetatable
+        private static Table? ItemBatchMetatable
         {
             get
             {
-                var dynValue = GameMain.LuaCs.Lua.Globals.Get(new object[] { "LuaUtilityBelt", "ItemBatch" }) ?? DynValue.Nil;
+                var dynValue = LuaCsSetup.Instance.Lua.Globals.Get("LuaUtilityBelt", "ItemBatch") ?? DynValue.Nil;
                 if (dynValue.IsNotNil() && dynValue.Type == DataType.Table) { return dynValue.Table; }
                 return null;
             }
         }
 
-        private DynValue itemBatch;
-        private Closure module_functionColon_run;
-        private Closure module_functionColon_runforinv;
+        private DynValue? itemBatch;
+        private Closure? module_functionColon_run;
+        private Closure? module_functionColon_runforinv;
 
         public bool TryParseItemBatchUnit()
         {
@@ -81,16 +84,15 @@ namespace DSSIFactionCraft.Items.Components
             {
                 if (ItemBatchMetatable is null)
                     throw new NullReferenceException("Required nothing from 'utilbelt.itbu' module!");
-                DynValue itemBatchBlocks = GameMain.LuaCs.Lua.DoString(itemBatchUnit);
+                DynValue itemBatchBlocks = LuaCsSetup.Instance.Lua.DoString(itemBatchUnit);
                 if (itemBatchBlocks.IsNil() || itemBatchBlocks.Type != DataType.Table)
                     throw new ArgumentException($"Failed to parse item batch for {DebugName}, expected a 'Table' as returned value, but got {itemBatchBlocks}!");
-                itemBatch = ItemBatchMetatable.MetaTable.RawGet(@"__call").Function.Call(
-                    new DynValue[] { DynValue.Nil, itemBatchBlocks });
+                itemBatch = ItemBatchMetatable.MetaTable.RawGet(@"__call").Function.Call(DynValue.Nil, itemBatchBlocks);
                 module_functionColon_run = ItemBatchMetatable.RawGet("run").Function;
                 module_functionColon_runforinv = ItemBatchMetatable.RawGet("runforinv").Function;
                 return true;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 LuaCsLogger.HandleException(e, LuaCsMessageOrigin.LuaCs);
                 itemBatch = null;
@@ -100,18 +102,11 @@ namespace DSSIFactionCraft.Items.Components
             }
         }
 
-        private IList<Item> itemsLinkedTo;
-
         static DfcItemBatch()
         {
             if (IsMultiplayerClient) { return; }
 
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcItemBatch), initialize);
-            object initialize(params object[] args)
-            {
-                groupTriggers = new();
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         public DfcItemBatch(Item item, ContentXElement element) : base(item, element) { }
@@ -142,12 +137,12 @@ namespace DSSIFactionCraft.Items.Components
                             triggers.Add(sender);
                         }
 
-                        module_functionColon_run.Call(new object[] { itemBatch, GetItemsLinkedTo() });
+                        module_functionColon_run?.Call(itemBatch, GetItemsLinkedTo());
                         if (!OnlyBatchLinkedTo && sender.Inventory != null)
                         {
                             try
                             {
-                                module_functionColon_runforinv.Call(new object[] { itemBatch, sender.Inventory });
+                                module_functionColon_runforinv?.Call(itemBatch, sender.Inventory);
                             }
                             catch (Exception e)
                             {
@@ -160,7 +155,7 @@ namespace DSSIFactionCraft.Items.Components
                     {
                         try
                         {
-                            module_functionColon_run.Call(new object[] { itemBatch, GetItemsLinkedTo() });
+                            module_functionColon_run?.Call(itemBatch, GetItemsLinkedTo());
                         }
                         catch (Exception e)
                         {

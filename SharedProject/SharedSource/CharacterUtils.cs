@@ -33,8 +33,6 @@ namespace DSSIFactionCraft
         {
             GUID = new();
             Tags = new();
-            GameMain.LuaCs.Lua.Globals["DFC", "AddCharacterTags"] = (Action<Character, string[]>)AddTags;
-            GameMain.LuaCs.Lua.Globals["DFC", "GetCharacterTags"] = (Func<Character, string[]>)GetTags;
         }
 
         public static Guid GetGuid(Character character)

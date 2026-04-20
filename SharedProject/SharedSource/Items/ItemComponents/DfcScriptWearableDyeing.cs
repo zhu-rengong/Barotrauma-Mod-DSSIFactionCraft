@@ -73,7 +73,7 @@ namespace DSSIFactionCraft.Items.Components
             if (IsMultiplayerClient) { return; }
 
             wearableDyeingScripts = new();
-            GameMain.LuaCs.Hook.Add("item.equip", nameof(DfcScriptWearableDyeing), dyeing);
+            Plugin.EventService.Add("item.equip", nameof(DfcScriptWearableDyeing), dyeing);
             object dyeing(params object[] args)
             {
                 wearableDyeingScripts.RemoveAll(script => script.item.Removed);

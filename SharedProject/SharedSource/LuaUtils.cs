@@ -12,7 +12,7 @@ namespace DSSIFactionCraft
     {
         public static DynValue SplitToTable(string value, char separator, StringSplitOptions options = StringSplitOptions.None)
         {
-            var dynValue = DynValue.NewTable(GameMain.LuaCs.Lua);
+            var dynValue = DynValue.NewTable(LuaCsSetup.Instance.Lua);
             value.Split(separator, options).ForEach(tag => { dynValue.Table.Append(DynValue.NewString(tag)); });
             return dynValue;
         }

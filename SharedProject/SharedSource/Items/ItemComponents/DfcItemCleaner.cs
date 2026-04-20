@@ -1,14 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Barotrauma;
+﻿using Barotrauma;
 using Barotrauma.Extensions;
 using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal class DfcItemCleaner : ItemComponent
     {
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                initialItemSet.Clear();
+                Item.ItemList.ForEach(item =>
+                {
+                    initialItemSet.Add(item);
+                });
+            }
+        }
+
         public abstract class CleanOption
         {
             public string[][] includes = Array.Empty<string[]>();
@@ -76,7 +89,7 @@ namespace DSSIFactionCraft.Items.Components
             set => strongCleanPatternExcludes = value;
         }
 
-        public void UpdateCleanOptions()
+        public void ParseCleanOptions()
         {
             weakCleanOption.includes = ItemUtils.ParseMatcherPattern(weakCleanPatternIncludes);
             weakCleanOption.excludes = ItemUtils.ParseMatcherPattern(weakCleanPatternExcludes);
@@ -99,7 +112,7 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable, Serialize(true, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public bool IgnoreInitial { get; set; }
 
-        private static List<Item> initialItemList;
+        private static HashSet<Item> initialItemSet;
 
         private Dictionary<Item, int> Tolerance;
 
@@ -119,18 +132,13 @@ namespace DSSIFactionCraft.Items.Components
         {
             base.OnItemLoaded();
             if (IsMultiplayerClient) { return; }
-            UpdateCleanOptions();
+            ParseCleanOptions();
         }
 
         static DfcItemCleaner()
         {
             if (IsMultiplayerClient) { return; }
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcItemCleaner), initialize);
-            object initialize(params object[] args)
-            {
-                initialItemList = new(Item.ItemList);
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         public override void Update(float deltaTime, Camera cam)
@@ -143,7 +151,7 @@ namespace DSSIFactionCraft.Items.Components
                 if (OnlyIndoor && item.CurrentHull == null) { continue; }
                 if (IgnoreStaticBody && (item.body?.BodyType ?? FarseerPhysics.BodyType.Static) == FarseerPhysics.BodyType.Static) { continue; }
                 if (IgnoreAttached && item.GetComponent<Holdable>() is Holdable holdable && holdable.Attached) { continue; }
-                if (IgnoreInitial && initialItemList.Contains(item)) { continue; }
+                if (IgnoreInitial && initialItemSet.Contains(item)) { continue; }
                 if (item.GetComponent<Projectile>() is Projectile projectile && (projectile.IsActive || projectile.User != null)) { continue; }
                 if (!weakCleanOption.Matches(item) && !strongCleanOption.Matches(item)) { continue; }
                 if (!RegionUtils.Contains(item.WorldPosition, includes, excludes)) { continue; }
@@ -166,7 +174,7 @@ namespace DSSIFactionCraft.Items.Components
                 if (++tolerance >= ToleranceThreshold)
                 {
                     Tolerance.Remove(item);
-                    item.DroppedStack.ForEachMod(stacked => Entity.Spawner.AddItemToRemoveQueue(stacked));
+                    item.DroppedStack.ForEachMod(Entity.Spawner.AddItemToRemoveQueue);
                     Entity.Spawner.AddItemToRemoveQueue(item);
                     continue;
                 }

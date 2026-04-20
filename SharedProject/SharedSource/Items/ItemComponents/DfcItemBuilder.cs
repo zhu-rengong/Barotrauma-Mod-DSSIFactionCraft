@@ -1,17 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Barotrauma;
+﻿using Barotrauma;
 using Barotrauma.Extensions;
 using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
 using Microsoft.Xna.Framework;
 using MoonSharp.Interpreter;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TargetType = DSSIFactionCraft.CharacterUtils.TargetType;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal class DfcItemBuilder : ItemComponent
     {
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                groupTriggers = new();
+            }
+        }
+
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         private string itemBuilds;
@@ -68,7 +77,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             get
             {
-                var dynValue = GameMain.LuaCs.Lua.Globals.Get(new object[] { "LuaUtilityBelt", "ItemBuilder" }) ?? DynValue.Nil;
+                var dynValue = LuaCsSetup.Instance.Lua.Globals.Get(new object[] { "LuaUtilityBelt", "ItemBuilder" }) ?? DynValue.Nil;
                 if (dynValue.IsNotNil() && dynValue.Type == DataType.Table) { return dynValue.Table; }
                 return null;
             }
@@ -85,7 +94,7 @@ namespace DSSIFactionCraft.Items.Components
             {
                 if (ItemBuilderMetatable is null)
                     throw new NullReferenceException("Required nothing from 'utilbelt.itbu' module!");
-                DynValue itemBuilderBlocks = GameMain.LuaCs.Lua.DoString(itemBuilds);
+                DynValue itemBuilderBlocks = LuaCsSetup.Instance.Lua.DoString(itemBuilds);
                 if (itemBuilderBlocks.IsNil() || itemBuilderBlocks.Type != DataType.Table)
                     throw new ArgumentException($"Failed to parse item builds for {DebugName}, expected a 'Table' as returned value, but got {itemBuilderBlocks}!");
                 itemBuilder = ItemBuilderMetatable.MetaTable.RawGet(@"__call").Function.Call(
@@ -112,12 +121,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             if (IsMultiplayerClient) { return; }
 
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcItemBuilder), initialize);
-            object initialize(params object[] args)
-            {
-                groupTriggers = new();
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         public DfcItemBuilder(Item item, ContentXElement element) : base(item, element) { }

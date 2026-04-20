@@ -13,11 +13,5 @@ namespace DSSIFactionCraft
     {
         public static IList<XElement> XPathSelectElements(XElement submarineElement, string xpath)
             => submarineElement.XPathSelectElements(xpath).ToList();
-
-        static XMLExtensions()
-        {
-            GameMain.LuaCs.Lua.Globals["DFC", "XMLExtensions"] = DynValue.NewTable(GameMain.LuaCs.Lua);
-            GameMain.LuaCs.Lua.Globals["DFC", "XMLExtensions", "XPathSelectElements"] = (Func<XElement, string, IList<XElement>>)XPathSelectElements;
-        }
     }
 }

@@ -1,60 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Barotrauma;
-using Microsoft.Xna.Framework;
-using MoonSharp.Interpreter;
+﻿using Barotrauma.LuaCs.Compatibility;
+using Barotrauma.LuaCs.Events;
 using DSSIFactionCraft.Items.Components;
 using HarmonyLib;
+using MonoMod.Core.Utils;
+using MoonSharp.Interpreter;
 
-#if CLIENT
-[assembly: IgnoresAccessChecksTo("Barotrauma")]
-#endif
-#if SERVER
-[assembly: IgnoresAccessChecksTo("DedicatedServer")]
-#endif
-[assembly: IgnoresAccessChecksTo("BarotraumaCore")]
-[assembly: IgnoresAccessChecksTo("MoonSharp.Interpreter")]
+namespace DSSIFactionCraft;
 
-namespace DSSIFactionCraft
+public partial class Plugin : IAssemblyPlugin
 {
-    public partial class Plugin : IAssemblyPlugin
+    // These are automatically assigned by the plugin service after the Constructor is called
+#pragma warning disable CS8618
+    public IConfigService ConfigService { get; set; }
+    public IPluginManagementService PluginManagementService { get; set; }
+    public ILoggerService _loggerService { get; set; }
+    public IConsoleCommandsService ConsoleCommandsService { get; set; }
+    public ISafeLuaUserDataService LuaUserDataService { get; set; }
+    public IEventService _eventService { get; set; }
+    public ILuaCsTimer _timerService { get; set; }
+#pragma warning restore CS8618
+    public static ILoggerService LoggerService = null!;
+    public static IEventService EventService = null!;
+    public static ILuaCsTimer TimerService = null!;
+
+    public ContentPackage _package = null!;
+
+    public Harmony? harmony;
+
+    public void Initialize()
     {
-        private Harmony harmony;
+        // When your plugin is loading, use this instead of the constructor for code relying on
+        // the services above.
+        LoggerService = _loggerService;
+        EventService = _eventService;
+        TimerService = _timerService;
 
-        public void Initialize()
+        if (!PluginManagementService.TryGetPackageForPlugin<Plugin>(out _package))
         {
-            harmony = new Harmony("dfc");
-            LuaCsLogger.LogMessage($"Patching {harmony}...");
-            harmony.PatchAll();
+            _loggerService.LogError("Failed to find package!");
+            return;
         }
 
-        public void OnLoadCompleted()
-        {
-            UserData.RegisterType<DfcNewSpawnPointSet>();
-            UserData.RegisterType<DfcNewFaction>();
-            UserData.RegisterType<DfcNewJob>();
-            UserData.RegisterType<DfcNewGear>();
+        LoggerService.LogWarning("hehe");
 
-            ModuleRegister.RegisterModuleType<DfcModule>(GameMain.LuaCs.Lua.Globals);
+        harmony = new("dfc");
+        harmony.PatchAll();
+    }
 
-            RuntimeHelpers.RunClassConstructor(typeof(CharacterUtils).TypeHandle);
-            RuntimeHelpers.RunClassConstructor(typeof(XMLExtensions).TypeHandle);
-            RuntimeHelpers.RunClassConstructor(typeof(DfcScriptWifiInitializer).TypeHandle);
-            RuntimeHelpers.RunClassConstructor(typeof(DfcScriptSubmarineLocker).TypeHandle);
-        }
+    public void OnLoadCompleted()
+    {
+        // After all plugins have loaded
+        // Put code that interacts with other plugins here.
+    }
 
-        public void PreInitPatching()
-        {
-            // Not yet supported: Called during the Barotrauma startup phase before vanilla content is loaded.
-        }
+    public void PreInitPatching()
+    {
+        // Called right after the constructor
+    }
 
-        public void Dispose()
-        {
-            harmony?.UnpatchSelf();
-            harmony = null;
-        }
+    public void Dispose()
+    {
+        // Cleanup your plugin!
+
+        harmony?.UnpatchSelf();
+        harmony = null;
     }
 }

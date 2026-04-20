@@ -1,14 +1,59 @@
+using Barotrauma;
+using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Barotrauma;
-using Barotrauma.Items.Components;
 using TargetType = DSSIFactionCraft.CharacterUtils.TargetType;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal class DfcEventCharacterDeath : ItemComponent
     {
+        public class EventCharacterDeath : IEventCharacterDeath
+        {
+            public void OnCharacterDeath(Character character, Affliction causeOfDeathAffliction, CauseOfDeathType causeOfDeathType)
+            {
+                triggers.RemoveAll(t => t.item.Removed);
+                if (!triggers.Any()) { return; }
+                foreach (var trigger in triggers)
+                {
+                    Queue<EventMessage> queueMessage = new();
+
+                    if (CharacterUtils.Matches(character,
+                        trigger.DeathTargetType,
+                        trigger.DeathSpeciesNames,
+                        trigger.DeathGroup,
+                        trigger.DeathTags))
+                    {
+                        EnqueueEventMessage(character, "dead");
+                    }
+
+                    if (character.CauseOfDeath?.Killer is Character killer
+                        && CharacterUtils.Matches(killer,
+                            trigger.KillerTargetType,
+                            trigger.KillerSpeciesNames,
+                            trigger.KillerGroup,
+                            trigger.KillerTags))
+                    {
+                        EnqueueEventMessage(killer, "killer");
+                    }
+
+                    if (queueMessage.Count > 0)
+                    {
+                        trigger.queueQueueMessage.Enqueue(queueMessage);
+                        trigger.IsActive = true;
+                    }
+
+                    void EnqueueEventMessage(Character character, string type)
+                    {
+                        queueMessage.Enqueue(new(character, CharacterUtils.GetGuid(character),
+                            character.Name, character.SpeciesName, character.Group, CharacterUtils.GetTags(character), type));
+                    }
+                }
+            }
+        }
+
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         private static List<DfcEventCharacterDeath> triggers;
@@ -46,49 +91,8 @@ namespace DSSIFactionCraft.Items.Components
             if (IsMultiplayerClient) { return; }
 
             triggers = new();
-            GameMain.LuaCs.Hook.Add("character.death", nameof(DfcEventCharacterDeath), TriggerEvent);
-            static object TriggerEvent(params object[] args)
-            {
-                triggers.RemoveAll(t => t.item.Removed);
-                if (!triggers.Any()) { return default; }
-                var dead = args[0] as Character;
-                foreach (var trigger in triggers)
-                {
-                    Queue<EventMessage> queueMessage = new();
 
-                    if (CharacterUtils.Matches(dead,
-                        trigger.DeathTargetType,
-                        trigger.DeathSpeciesNames,
-                        trigger.DeathGroup,
-                        trigger.DeathTags))
-                    {
-                        EnqueueEventMessage(dead, "dead");
-                    }
-
-                    if (dead.CauseOfDeath?.Killer is Character killer
-                        && CharacterUtils.Matches(killer,
-                            trigger.KillerTargetType,
-                            trigger.KillerSpeciesNames,
-                            trigger.KillerGroup,
-                            trigger.KillerTags))
-                    {
-                        EnqueueEventMessage(killer, "killer");
-                    }
-
-                    if (queueMessage.Count > 0)
-                    {
-                        trigger.queueQueueMessage.Enqueue(queueMessage);
-                        trigger.IsActive = true;
-                    }
-
-                    void EnqueueEventMessage(Character character, string type)
-                    {
-                        queueMessage.Enqueue(new(character, CharacterUtils.GetGuid(character),
-                            character.Name, character.SpeciesName, character.Group, CharacterUtils.GetTags(character), type));
-                    }
-                }
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventCharacterDeath>(new EventCharacterDeath());
         }
 
         public DfcEventCharacterDeath(Item item, ContentXElement element) : base(item, element)
@@ -103,7 +107,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             if (IsMultiplayerClient) { IsActive = false; return; }
 
-            if (queueQueueMessage.TryDequeue(out Queue<EventMessage> queueMessage))
+            if (queueQueueMessage.TryDequeue(out Queue<EventMessage>? queueMessage))
             {
                 while (queueMessage.TryDequeue(out EventMessage message))
                 {

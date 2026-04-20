@@ -37,7 +37,7 @@ namespace DSSIFactionCraft.Items.Components
             }
         }
 
-        private static Table _G { get => GameMain.LuaCs.Lua.Globals; }
+        private static Table _G { get => LuaCsSetup.Instance.Lua.Globals; }
 
         public DfcAddOrRemoveGear(Item item, ContentXElement element) : base(item, element) { }
 
@@ -77,7 +77,7 @@ namespace DSSIFactionCraft.Items.Components
                     }
                     catch (Exception ex)
                     {
-                        GameMain.LuaCs.HandleException(ex, LuaCsMessageOrigin.LuaCs);
+                        Plugin.LoggerService.HandleException(ex, "signal_in");
                     }
 
                     break;

@@ -79,7 +79,7 @@ namespace DSSIFactionCraft.Items.Components
             {
                 case "signal_in":
 #if SERVER
-                    var viableReceivers = Client.ClientList.Where(client =>
+                    var viableReceivers = ModUtils.Client.ClientList.Where(client =>
                     {
                         if (SpectatorReceivable && client.Spectating) { return true; }
                         if (SpectatorOnlyReceivable && client.SpectateOnly) { return true; }

@@ -1,16 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Barotrauma;
+﻿using Barotrauma;
 using Barotrauma.Extensions;
 using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
 using MoonSharp.Interpreter;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TargetType = DSSIFactionCraft.CharacterUtils.TargetType;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal class DfcCharacterResponder : ItemComponent
     {
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                groupTriggers = new();
+            }
+        }
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         private string chunk;
@@ -60,7 +68,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             try
             {
-                var dynValue = GameMain.LuaCs.Lua.DoString(chunk);
+                var dynValue = LuaCsSetup.Instance.Lua.DoString(chunk);
                 if (dynValue.IsNil() || dynValue.Type != DataType.Function)
                     throw new ArgumentException($"Failed to parse chunk for {DebugName}, expected a 'Function' as returned value, but got {responseCallback}!");
                 responseCallback = dynValue.Function;
@@ -81,12 +89,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             if (IsMultiplayerClient) { return; }
 
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcCharacterResponder), initialize);
-            object initialize(params object[] args)
-            {
-                groupTriggers = new();
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         public DfcCharacterResponder(Item item, ContentXElement element) : base(item, element) { }

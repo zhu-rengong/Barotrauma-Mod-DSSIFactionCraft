@@ -194,7 +194,7 @@ namespace DSSIFactionCraft
 
                 try
                 {
-                    script = GameMain.LuaCs.Lua;
+                    script = LuaCsSetup.Instance.Lua;
 
                     var initialize = script.DoString($@"
 return function(_)

@@ -1,15 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Barotrauma;
+﻿using Barotrauma;
 using Barotrauma.Items.Components;
+using Barotrauma.LuaCs.Events;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DSSIFactionCraft.Items.Components
 {
     internal partial class DfcScriptSubmarineLocker : ItemComponent
     {
+        public class EventRoundStarted : IEventRoundStarted
+        {
+            public void OnRoundStart()
+            {
+                Patch_SubmarineBody_Update.LockX.Clear();
+                Patch_SubmarineBody_Update.LockY.Clear();
+                submarineLockerScripts.RemoveAll(script => script.item.Removed);
+                if (!submarineLockerScripts.Any()) { return; }
+                submarineLockerScripts.ForEach(script =>
+                {
+                    if (script.item.Submarine?.SubBody is SubmarineBody subBody)
+                    {
+                        if (script.LockX) { Patch_SubmarineBody_Update.LockX.Add(subBody); }
+                        if (script.LockY) { Patch_SubmarineBody_Update.LockY.Add(subBody); }
+                    }
+                });
+            }
+        }
+
         protected static bool IsMultiplayerClient => GameMain.NetworkMember?.IsClient ?? false;
 
         [InGameEditable, Serialize(true, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
@@ -26,23 +46,7 @@ namespace DSSIFactionCraft.Items.Components
 
             submarineLockerScripts = new();
 
-            GameMain.LuaCs.Hook.Add("roundStart", nameof(DfcScriptSubmarineLocker), roundStart);
-            object roundStart(params object[] args)
-            {
-                Patch_SubmarineBody_Update.LockX.Clear();
-                Patch_SubmarineBody_Update.LockY.Clear();
-                submarineLockerScripts.RemoveAll(script => script.item.Removed);
-                if (!submarineLockerScripts.Any()) { return default; }
-                submarineLockerScripts.ForEach(script =>
-                {
-                    if (script.item.Submarine?.SubBody is SubmarineBody subBody)
-                    {
-                        if (script.LockX) { Patch_SubmarineBody_Update.LockX.Add(subBody); }
-                        if (script.LockY) { Patch_SubmarineBody_Update.LockY.Add(subBody); }
-                    }
-                });
-                return default;
-            }
+            Plugin.EventService.Subscribe<IEventRoundStarted>(new EventRoundStarted());
         }
 
         public DfcScriptSubmarineLocker(Item item, ContentXElement element) : base(item, element)

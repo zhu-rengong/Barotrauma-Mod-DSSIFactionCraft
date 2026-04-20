@@ -22,22 +22,22 @@ namespace DSSIFactionCraft.Networking
             public DateTime RespawnTime;
             public bool RespawnCountdownStarted;
 
-            public bool AllowRespawn => DfcModule.Factions is DynValue { Type: DataType.Table } factions
+            public bool AllowRespawn => LuaAccessHelper.Factions is DynValue { Type: DataType.Table } factions
                 && factions.Table.RawGet(FactionIdentifier) is DynValue { Type: DataType.Table } faction
                 && faction.Table.RawGet("allowRespawn") is DynValue { Type: DataType.Boolean, Boolean: true };
 
-            public float RespawnIntervalMultiplier => (DfcModule.Factions is DynValue { Type: DataType.Table } factions
+            public float RespawnIntervalMultiplier => (LuaAccessHelper.Factions is DynValue { Type: DataType.Table } factions
                     && factions.Table.RawGet(FactionIdentifier) is DynValue { Type: DataType.Table } faction
                     && faction.Table.RawGet("respawnIntervalMultiplier") is DynValue { Type: DataType.Number } respawnIntervalMultiplier
                 ) ? Convert.ToSingle(respawnIntervalMultiplier.Number) : 1.0f;
 
-            public Closure? GetRespawnLimitPerTime => DfcModule.Factions is DynValue { Type: DataType.Table } factions
+            public Closure? GetRespawnLimitPerTime => LuaAccessHelper.Factions is DynValue { Type: DataType.Table } factions
                     && factions.Table.RawGet(FactionIdentifier) is DynValue { Type: DataType.Table } faction
                     && faction.Table.Get("getRespawnLimitPerTime") is DynValue { Type: DataType.Function } getRespawnLimitPerTime
                         ? getRespawnLimitPerTime.Function
                         : null;
 
-            public int NumberOfParticipatorsByKeyEvenIfNil => DfcModule.Factions is DynValue { Type: DataType.Table } factions
+            public int NumberOfParticipatorsByKeyEvenIfNil => LuaAccessHelper.Factions is DynValue { Type: DataType.Table } factions
                     && factions.Table.RawGet(FactionIdentifier) is DynValue { Type: DataType.Table } faction
                     && faction.Table.Get("tryGetParticipatorsByKeyEvenIfNil") is DynValue { Type: DataType.Function } tryGetParticipatorsByKeyEvenIfNil
                     && tryGetParticipatorsByKeyEvenIfNil.Function.Call(faction) is DynValue { Type: DataType.Table } participators
@@ -58,7 +58,7 @@ namespace DSSIFactionCraft.Networking
         {
             if (GameMain.GameSession is { RoundDuration: < 3.0f }) { return; }
 
-            if (DfcModule.Factions is DynValue { Type: DataType.Table } factions)
+            if (LuaAccessHelper.Factions is DynValue { Type: DataType.Table } factions)
             {
                 foreach (var dynValueFactionIdentifier in factions.Table.Keys)
                 {
@@ -74,8 +74,8 @@ namespace DSSIFactionCraft.Networking
             }
 
             if (factionSpecificStates.Any()
-                && DfcModule.DeathTime.Table is Table deathTimeTable
-                && DfcModule.JoinedFaction.Table is Table joinedFactionTable)
+                && LuaAccessHelper.DeathTime.Table is Table deathTimeTable
+                && LuaAccessHelper.JoinedFaction.Table is Table joinedFactionTable)
             {
                 foreach (var factionSpecificState in factionSpecificStates.Values)
                 {

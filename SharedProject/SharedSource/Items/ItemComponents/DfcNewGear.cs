@@ -38,7 +38,7 @@ namespace DSSIFactionCraft.Items.Components
         {
             var component = item.GetComponent<DfcNewGear>();
             if (component == null) { return DynValue.Nil; }
-            var dynValue = DynValue.NewTable(GameMain.LuaCs.Lua);
+            var dynValue = DynValue.NewTable(LuaCsSetup.Instance.Lua);
             dynValue.Table["identifier"] = component.Identifier.IsNullOrEmpty() ? DynValue.Nil : component.Identifier;
             dynValue.Table["actionChunk"] = component.ActionChunk.IsNullOrEmpty() ? DynValue.Nil : component.ActionChunk;
             dynValue.Table["participantTickets"] = component.ParticipantTickets;
