@@ -15,7 +15,7 @@ namespace DSSIFactionCraft.Items.Components
             switch (connection.Name)
             {
                 case "signal_in":
-                    Plugin.TimerService.Wait(EndGame, 0);
+                    LuaCsSetup.Instance.Timer.Wait(EndGame, 0);
                     static void EndGame(params object[] args) =>
 #if SERVER
                     GameMain.Server.EndGame();

@@ -16,11 +16,9 @@ public partial class Plugin : IAssemblyPlugin
     public ILoggerService _loggerService { get; set; }
     public IConsoleCommandsService ConsoleCommandsService { get; set; }
     //public IEventService _eventService { get; set; }
-    public ILuaCsTimer _timerService { get; set; }
 #pragma warning restore CS8618
     public static ILoggerService LoggerService = null!;
     public static IEventService EventService = null!;
-    public static ILuaCsTimer TimerService = null!;
 
     public ContentPackage _package = null!;
 
@@ -32,7 +30,6 @@ public partial class Plugin : IAssemblyPlugin
         // the services above.
         LoggerService = _loggerService;
         EventService = LuaCsSetup.Instance.EventService;
-        TimerService = _timerService;
 
         if (!PluginManagementService.TryGetPackageForPlugin<Plugin>(out _package))
         {
