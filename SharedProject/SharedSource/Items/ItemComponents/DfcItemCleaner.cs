@@ -112,7 +112,7 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable, Serialize(true, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public bool IgnoreInitial { get; set; }
 
-        private static HashSet<Item> initialItemSet;
+        private static HashSet<Item> initialItemSet = new();
 
         private Dictionary<Item, int> Tolerance;
 
