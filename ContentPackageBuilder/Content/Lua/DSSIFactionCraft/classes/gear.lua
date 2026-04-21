@@ -1,14 +1,11 @@
----@class dfc.gear: dfc.inner
+---@class dfc.gear: dfc.inner, dfc.taggable, dfc.participatory
 ---@field _participators { [dfc.faction]:Barotrauma.Character[] }
 ---@field identifier string
 ---@field action fun(character:Barotrauma.Character)
 ---@field sort integer
 ---@field notifyTeammates boolean
 ---@overload fun(identifier: string, action?: fun(character:Barotrauma.Character)):self
-local m = Class 'dfc.gear'
-
----@class dfc.gear : dfc.taggable, dfc.participatory
-Extends('dfc.gear', 'dfc.taggable', 'dfc.participatory')
+local m = Class('dfc.gear', 'dfc.taggable', 'dfc.participatory')
 
 ---@param identifier string
 ---@param action? fun(character:Barotrauma.Character)

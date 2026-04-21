@@ -1,4 +1,4 @@
----@class dfc.faction: dfc.inner
+---@class dfc.faction: dfc.inner, dfc.taggable, dfc.participatory
 ---@field _participators { [string]:string[] } # Client.AccountId
 ---@field identifier Barotrauma.CharacterTeamType
 ---@field teamID Barotrauma.CharacterTeamType
@@ -15,10 +15,7 @@
 ---@field respawnIntervalMultiplier number
 ---@field getRespawnLimitPerTime fun(identifier: string, dead: integer, total: integer):integer
 ---@overload fun(identifier: string, teamID: Barotrauma.CharacterTeamType, maxLives?: integer, onJoined?: fun(character: Barotrauma.Character)):self
-local m = Class 'dfc.faction'
-
----@class dfc.faction : dfc.taggable, dfc.participatory
-Extends('dfc.faction', 'dfc.taggable', 'dfc.participatory')
+local m = Class('dfc.faction', 'dfc.taggable', 'dfc.participatory')
 
 ---@param identifier string
 ---@param teamID Barotrauma.CharacterTeamType

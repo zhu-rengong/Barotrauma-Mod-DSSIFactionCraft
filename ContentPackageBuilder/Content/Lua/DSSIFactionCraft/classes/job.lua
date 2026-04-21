@@ -1,4 +1,4 @@
----@class dfc.job: dfc.inner
+---@class dfc.job: dfc.inner, dfc.taggable, dfc.participatory
 ---@field _participators { [dfc.faction]:Barotrauma.Character[] }
 ---@field identifier string
 ---@field onAssigned? fun(character:Barotrauma.Character)
@@ -18,10 +18,7 @@
 ---@field spawnPointSets dfc.spawnpointset[]
 ---@field spawnPointSetWeights number[]
 ---@overload fun(identifier: string, name?: string, onAssigned?: fun(character:Barotrauma.Character), liveConsumption?: integer, jobName?: string, speciesName?: string):self
-local m = Class 'dfc.job'
-
----@class dfc.job : dfc.taggable, dfc.participatory
-Extends('dfc.job', 'dfc.taggable', 'dfc.participatory')
+local m = Class('dfc.job', 'dfc.taggable', 'dfc.participatory')
 
 ---@param identifier string
 ---@param name? string

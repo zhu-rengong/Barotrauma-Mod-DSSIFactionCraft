@@ -1,4 +1,4 @@
----@class dfc.spawnpointset: dfc.inner
+---@class dfc.spawnpointset: dfc.inner, dfc.taggable
 ---@field public identifier string
 ---@field private caches Barotrauma.WayPoint[]
 ---@field private teamID? Barotrauma.CharacterTeamType
@@ -8,10 +8,7 @@
 ---@field private existAny boolean
 ---@field private count integer
 ---@overload fun(identifier: string, tag?: string, spawnType?: Barotrauma.SpawnType, assignedJob?: string, teamID?: Barotrauma.CharacterTeamType):self
-local m = Class 'dfc.spawnpointset'
-
----@class dfc.spawnpointset : dfc.taggable
-Extends('dfc.spawnpointset', 'dfc.taggable')
+local m = Class('dfc.spawnpointset', 'dfc.taggable')
 
 ---@param identifier string
 ---@param tag? string
