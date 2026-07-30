@@ -16,7 +16,7 @@ namespace DSSIFactionCraft.Networking
         {
             get
             {
-                if (LuaCsSetup.Instance.Lua.Globals.RawGet(new object[] { "Lub", "Localization" }) is DynValue { Type: DataType.Table } l10n
+                if (LuaCsSetup.Instance.Lua.Globals.RawGet(["Lub", "Localization"]) is DynValue { Type: DataType.Table } l10n
                     && l10n.Table.MetaTable is Table metaTable
                     && metaTable.RawGet("__call") is DynValue { Type: DataType.Function } __call)
                 {

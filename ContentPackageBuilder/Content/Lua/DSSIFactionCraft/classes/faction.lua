@@ -3,7 +3,7 @@
 ---@field identifier Barotrauma.CharacterTeamType
 ---@field teamID Barotrauma.CharacterTeamType
 ---@field maxLives integer
----@field onJoined? fun(character:Barotrauma.Character)
+---@field onJoined? fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)
 ---@field sort integer
 ---@field shouldSortJobs boolean
 ---@field notifyTeammates boolean
@@ -14,13 +14,15 @@
 ---@field allowRespawn boolean
 ---@field respawnIntervalMultiplier number
 ---@field getRespawnLimitPerTime fun(identifier: string, dead: integer, total: integer):integer
+---@field overrideStartRespawningMessage? fun(identifier: string, displayName: string, timeLeft: number): string?
+---@field overrideRespawnedMessage? fun(identifier: string, displayName: string, respawnedClientAccountIds: string[]): string?
 ---@overload fun(identifier: string, teamID: Barotrauma.CharacterTeamType, maxLives?: integer, onJoined?: fun(character: Barotrauma.Character)):self
 local m = Class('dfc.faction', 'dfc.taggable', 'dfc.participatory')
 
 ---@param identifier string
 ---@param teamID Barotrauma.CharacterTeamType
 ---@param maxLives? integer
----@param onJoined? fun(character:Barotrauma.Character)
+---@param onJoined? fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)
 function m:__init(identifier, teamID, maxLives, onJoined)
     Class 'dfc.taggable'.__init(self)
     Class 'dfc.participatory'.__init(self)

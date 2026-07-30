@@ -11,6 +11,28 @@ Hook.Add("loaded", function()
 
     DFC.Path = path
 
+    ---@type Barotrauma.ContentPackage
+    local packageName = "DSSIFactionCraft"
+
+    do
+        local result = { trygetpackage(packageName) }
+        if result[1] then
+            DFC.Package = result[2]
+        else
+            log(("Not found package named %q"):format(packageName), 'e')
+        end
+    end
+
+    do
+        local settingName = "SelectionModeDecideWay"
+        local result = { ConfigService.TryGetConfig(SettingList.String, DFC.Package, settingName) }
+        if result[1] then
+            DFC.SelectionModeDecideWay = result[2]
+        else
+            log(("Not found setting named %q"):format(settingName), 'e')
+        end
+    end
+
     LuaUserData.RegisterType [[DSSIFactionCraft.Items.Components.DfcNewSpawnPointSet]]
     LuaUserData.RegisterType [[DSSIFactionCraft.Items.Components.DfcNewFaction]]
     LuaUserData.RegisterType [[DSSIFactionCraft.Items.Components.DfcNewJob]]

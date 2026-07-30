@@ -64,7 +64,7 @@ namespace DSSIFactionCraft.Items.Components
             dynValue.Table["name"] = component.JobOrCharacterName.IsNullOrEmpty() ? DynValue.Nil : component.JobOrCharacterName;
             dynValue.Table["jobName"] = component.JobName.IsNullOrEmpty() ? DynValue.Nil : component.JobName;
             dynValue.Table["speciesName"] = component.SpeciesName.IsNullOrEmpty() ? DynValue.Nil : component.SpeciesName;
-            dynValue.Table["onAssignedChunk"] = component.OnAssignedChunk.IsNullOrEmpty() ? DynValue.Nil : component.OnAssignedChunk;
+            dynValue.Table["onAssignedChunk"] = component.OnAssignedChunk;
             dynValue.Table["liveConsumption"] = component.LiveConsumption;
             dynValue.Table["gears"] = LuaUtils.SplitToTable(component.Gears, ',', StringSplitOptions.RemoveEmptyEntries);
             dynValue.Table["spawnPointSets"] = LuaUtils.SplitToTable(component.SpawnPointSets, ',', StringSplitOptions.RemoveEmptyEntries);

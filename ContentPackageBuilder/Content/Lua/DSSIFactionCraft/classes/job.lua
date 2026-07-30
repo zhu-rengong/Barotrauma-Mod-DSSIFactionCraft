@@ -1,7 +1,7 @@
 ---@class dfc.job: dfc.inner, dfc.taggable, dfc.participatory
 ---@field _participators { [dfc.faction]:Barotrauma.Character[] }
 ---@field identifier string
----@field onAssigned? fun(character:Barotrauma.Character)
+---@field onAssigned? fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)
 ---@field liveConsumption integer
 ---@field sort integer
 ---@field shouldSortGears boolean
@@ -22,7 +22,7 @@ local m = Class('dfc.job', 'dfc.taggable', 'dfc.participatory')
 
 ---@param identifier string
 ---@param name? string
----@param onAssigned? fun(character:Barotrauma.Character)
+---@param onAssigned? fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)
 ---@param liveConsumption? integer
 ---@param jobName? string
 ---@param speciesName? string

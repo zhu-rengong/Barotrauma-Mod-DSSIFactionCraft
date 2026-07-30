@@ -82,6 +82,7 @@
   <sp.dfccharacterresponder.characterspeciesnames.description>Character Species Name</sp.dfccharacterresponder.characterspeciesnames.description>
   <sp.dfccharacterresponder.charactergroup.description>Character Group</sp.dfccharacterresponder.charactergroup.description>
   <sp.dfccharacterresponder.charactertags.description>Character Tags</sp.dfccharacterresponder.charactertags.description>
+  <sp.dfccharactercleaner.despawnratherthanremovedirectly.description>Use despawn (which drops a duffel bag) instead of directly removing the character.</sp.dfccharactercleaner.despawnratherthanremovedirectly.description>
   <sp.dfccharacterresponder.group.description>Character responders with the same value will be grouped into a group. If a character has been responded to by a character responder in the same group, it cannot respond again. If the group is empty, there is no limit.</sp.dfccharacterresponder.group.description>
   <sp.dfccharacterresponder.identifier.description>Identifier</sp.dfccharacterresponder.identifier.description>
   <sp.dfccharactercleaner.tolerancethreshold.description>Remove a character when the number of times of the character is recorded reaches its threshold.</sp.dfccharactercleaner.tolerancethreshold.description>
@@ -179,4 +180,11 @@
   <entitydescription.dfc_whiteback></entitydescription.dfc_whiteback>
   <entityname.dfc_solidlight>Solid Light</entityname.dfc_solidlight>
   <entitydescription.dfc_solidlight></entitydescription.dfc_solidlight>
+
+  <dfc.respawningin>Faction "[faction]" character will respawn in [time]...</dfc.respawningin>
+  <dfc.respawned>Faction "[faction]" character has respawned: [clientNames]</dfc.respawned>
+
+  <DSSIFactionCraft.SelectionModeDecideWay.DisplayName>Team Assignment Method</DSSIFactionCraft.SelectionModeDecideWay.DisplayName>
+  <DSSIFactionCraft.SelectionModeDecideWay.Tooltip>[Manual] Players manually select their team.\n[Random] Players are randomly assigned to a team.\n[ManualThenRandom] Manual selection with automatic fallback to random on timeout.\n[Vote] Team assignment is decided by player vote.</DSSIFactionCraft.SelectionModeDecideWay.Tooltip>
+  <DSSIFactionCraft.SelectionModeDecideWay.DisplayCategory>DFC</DSSIFactionCraft.SelectionModeDecideWay.DisplayCategory>
 </infotexts>

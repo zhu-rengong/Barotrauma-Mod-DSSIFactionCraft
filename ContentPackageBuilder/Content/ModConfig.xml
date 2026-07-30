@@ -7,4 +7,6 @@
     <Assembly File="%ModDir%/bin/Server/OSX/DSSIFactionCraft.dll" Target="Server" Platform="OSX" />
     <Assembly File="%ModDir%/bin/Server/Windows/DSSIFactionCraft.dll" Target="Server" Platform="Windows" />
     <Lua File="%ModDir%/Lua/DSSIFactionCraft/init.lua" IsFileRequired="true" IsAutorun="true" />
+
+    <Config File="%ModDir%/Config/SettingsShared.xml" />
 </ModConfig>

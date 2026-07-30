@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+    <Settings>
+        <Setting Name="SelectionModeDecideWay" Type="listString" NetSync="TwoWay">
+            <Values>
+                <Value Value="Manual" />
+                <Value Value="Random" />
+                <Value Value="ManualThenRandom" />
+                <Value Value="Vote" />
+            </Values>
+        </Setting>
+    </Settings>
+</Configuration>

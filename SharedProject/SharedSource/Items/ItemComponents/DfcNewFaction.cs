@@ -28,7 +28,7 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable(MinValueInt = 0), Serialize(100, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public int MaxLives { get; set; }
 
-        [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
+        [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)")]
         public string OnJoinedChunk { get; set; }
 
         [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
@@ -47,7 +47,13 @@ namespace DSSIFactionCraft.Items.Components
         public float RespawnIntervalMultiplier { get; set; }
 
         [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(identifier: string, dead: integer, total: integer):integer")]
-        public string GetRespawnLimitPerTime { get; set; }
+        public string GetRespawnLimitPerTimeChunk { get; set; }
+
+        [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(identifier: string, displayName: string, timeLeft: number): string?")]
+        public string OverrideStartRespawningMessageChunk { get; set; }
+
+        [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(identifier: string, displayName: string, respawnedClientAccountIds: string[]): string?")]
+        public string OverrideRespawnedMessageChunk { get; set; }
 
         public static DynValue GetParameterTable(Item item)
         {
@@ -57,7 +63,7 @@ namespace DSSIFactionCraft.Items.Components
             dynValue.Table["identifier"] = component.Identifier.IsNullOrEmpty() ? DynValue.Nil : component.Identifier;
             dynValue.Table["teamID"] = component.TeamID;
             dynValue.Table["maxLives"] = component.MaxLives;
-            dynValue.Table["onJoinedChunk"] = component.OnJoinedChunk.IsNullOrEmpty() ? DynValue.Nil : component.OnJoinedChunk;
+            dynValue.Table["onJoinedChunk"] = component.OnJoinedChunk;
             dynValue.Table["jobs"] = LuaUtils.SplitToTable(component.Jobs, ',', StringSplitOptions.RemoveEmptyEntries);
             dynValue.Table["participantTickets"] = component.ParticipantTickets;
             dynValue.Table["participantNumberLimit"] = component.ParticipantNumberLimit;
@@ -67,7 +73,9 @@ namespace DSSIFactionCraft.Items.Components
             dynValue.Table["notifyTeammates"] = component.NotifyTeammates;
             dynValue.Table["allowRespawn"] = component.AllowRespawn;
             dynValue.Table["respawnIntervalMultiplier"] = component.RespawnIntervalMultiplier;
-            dynValue.Table["getRespawnLimitPerTime"] = component.GetRespawnLimitPerTime;
+            dynValue.Table["getRespawnLimitPerTimeChunk"] = component.GetRespawnLimitPerTimeChunk;
+            dynValue.Table["overrideStartRespawningMessageChunk"] = component.OverrideStartRespawningMessageChunk;
+            dynValue.Table["overrideRespawnedMessageChunk"] = component.OverrideRespawnedMessageChunk;
             return dynValue;
         }
 

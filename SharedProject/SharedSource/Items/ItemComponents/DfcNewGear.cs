@@ -40,7 +40,7 @@ namespace DSSIFactionCraft.Items.Components
             if (component == null) { return DynValue.Nil; }
             var dynValue = DynValue.NewTable(LuaCsSetup.Instance.Lua);
             dynValue.Table["identifier"] = component.Identifier.IsNullOrEmpty() ? DynValue.Nil : component.Identifier;
-            dynValue.Table["actionChunk"] = component.ActionChunk.IsNullOrEmpty() ? DynValue.Nil : component.ActionChunk;
+            dynValue.Table["actionChunk"] = component.ActionChunk;
             dynValue.Table["participantTickets"] = component.ParticipantTickets;
             dynValue.Table["participantNumberLimit"] = component.ParticipantNumberLimit;
             dynValue.Table["participantWeight"] = component.ParticipantWeight;

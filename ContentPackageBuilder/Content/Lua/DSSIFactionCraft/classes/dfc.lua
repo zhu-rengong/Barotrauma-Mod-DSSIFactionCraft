@@ -287,6 +287,26 @@ function m:initialize()
             end)
         end
 
+        ---@param obj dfc.faction|dfc.job|dfc.gear
+        ---@param memberName string
+        ---@param params table
+        ---@param key string
+        local function loadObjectFunc(obj, memberName, params, key)
+            local chunk = params[key]
+            if string.len(chunk) > 0 then
+                local ret = dostring(chunk)
+                if type(ret) == "function" then
+                    obj[memberName] = ret
+                else
+                    log(
+                        ("Failed to load '%s' chunk for %s(%s) with an error message: %s"):format(
+                            memberName, Lub.LiteOO.getClassName(obj), params.identifier, ret),
+                        'e'
+                    )
+                end
+            end
+        end
+
         local spawnPointSetNewList = Util.GetItemsById("dfc_newspawnpointset")
         if spawnPointSetNewList then
             for _, spawnPointSetNew in ipairs(spawnPointSetNewList) do
@@ -303,21 +323,12 @@ function m:initialize()
             for _, gearNew in ipairs(gearNewList) do
                 local parameters = DFC.Components.DfcNewGear.GetParameterTable(gearNew)
                 if parameters.identifier then
-                    local actionClosure
-                    local actionChunk = parameters.actionChunk
-                    if actionChunk then
-                        local ret = dostring(actionChunk)
-                        if type(ret) == "function" then
-                            actionClosure = ret
-                        else
-                            log(("Failed to load chunk for gear(%s) with an error message: %s"):format(parameters.identifier, ret), 'e')
-                        end
-                    end
                     local gear = self:newGear(parameters.identifier, actionClosure)
                     gear.participantTickets = parameters.participantTickets
                     gear.participantNumberLimit = parameters.participantNumberLimit
                     gear.participantWeight = parameters.participantWeight
                     gear.characterTags = parameters.characterTags
+                    loadObjectFunc(gear, "action", parameters, "actionChunk")
                     if parameters.sort then gear.sort = parameters.sort end
                     if parameters.notifyTeammates then gear.notifyTeammates = parameters.notifyTeammates end
                 end
@@ -329,21 +340,12 @@ function m:initialize()
             for _, jobNew in ipairs(jobNewList) do
                 local parameters = DFC.Components.DfcNewJob.GetParameterTable(jobNew)
                 if parameters.identifier then
-                    local onAssignedClosure
-                    local onAssignedChunk = parameters.onAssignedChunk
-                    if onAssignedChunk then
-                        local ret = dostring(onAssignedChunk)
-                        if type(ret) == "function" then
-                            onAssignedClosure = ret
-                        else
-                            log(("Failed to load chunk for job(%s) with an error message: %s"):format(parameters.identifier, ret), 'e')
-                        end
-                    end
-                    local job = self:newJob(parameters.identifier, parameters.name, onAssignedClosure, parameters.liveConsumption, parameters.jobName, parameters.speciesName)
+                    local job = self:newJob(parameters.identifier, parameters.name, nil, parameters.liveConsumption, parameters.jobName, parameters.speciesName)
                     job.participantTickets = parameters.participantTickets
                     job.participantNumberLimit = parameters.participantNumberLimit
                     job.participantWeight = parameters.participantWeight
                     job.characterTags = parameters.characterTags
+                    loadObjectFunc(job, "onAssigned", parameters, "onAssignedChunk")
                     for _, identifier in ipairs(parameters.gears) do job:addGear(identifier, false) end
                     for _, identifier in ipairs(parameters.spawnPointSets) do job:addSpawnPointSet(identifier) end
                     if parameters.sort then job.sort = parameters.sort end
@@ -359,38 +361,20 @@ function m:initialize()
             for _, factionNew in ipairs(factionNewList) do
                 local parameters = DFC.Components.DfcNewFaction.GetParameterTable(factionNew)
                 if parameters.identifier then
-                    local onJoinedClosure
-                    local onJoinedChunk = parameters.onJoinedChunk
-                    if onJoinedChunk then
-                        local ret = dostring(onJoinedChunk)
-                        if type(ret) == "function" then
-                            onJoinedClosure = ret
-                        else
-                            log(("Failed to load 'onJoined' chunk for faction(%s) with an error message: %s"):format(parameters.identifier, ret), 'e')
-                        end
-                    end
-                    local faction = self:newFaction(parameters.identifier, parameters.teamID, parameters.maxLives, onJoinedClosure)
+                    local faction = self:newFaction(parameters.identifier, parameters.teamID, parameters.maxLives)
                     faction.participantTickets = parameters.participantTickets
                     faction.participantNumberLimit = parameters.participantNumberLimit
                     faction.participantWeight = parameters.participantWeight
                     faction.characterTags = parameters.characterTags
+                    loadObjectFunc(faction, "onJoined", parameters, "onJoinedChunk")
                     for _, identifier in ipairs(parameters.jobs) do faction:addJob(identifier, false) end
                     faction.sort = parameters.sort
                     faction.notifyTeammates = parameters.notifyTeammates
                     faction.allowRespawn = parameters.allowRespawn
                     faction.respawnIntervalMultiplier = parameters.respawnIntervalMultiplier
-
-                    do
-                        local chunk = parameters.getRespawnLimitPerTime
-                        if string.len(chunk) > 0 then
-                            local ret = dostring(chunk)
-                            if type(ret) == "function" then
-                                faction.getRespawnLimitPerTime = ret
-                            else
-                                log(("Failed to load 'getRespawnLimitPerTime' chunk for faction(%s) with an error message: %s"):format(parameters.identifier, ret), 'e')
-                            end
-                        end
-                    end
+                    loadObjectFunc(faction, "getRespawnLimitPerTime", parameters, "getRespawnLimitPerTimeChunk")
+                    loadObjectFunc(faction, "overrideStartRespawningMessage", parameters, "overrideStartRespawningMessageChunk")
+                    loadObjectFunc(faction, "overrideRespawnedMessage", parameters, "overrideRespawnedMessageChunk")
                 end
             end
         end
@@ -402,14 +386,15 @@ function m:initialize()
         DFC.Loaded = nil
 
         if CLIENT then
-            chat.removecommand("!factionlist")
-            chat.removecommand("!joinfaction")
-            chat.removecommand("!joblist")
-            chat.removecommand("!assignjob")
-            chat.removecommand("!assignjobs")
-            chat.removecommand("!gearlist")
-            chat.removecommand("!spawngear")
-            chat.removecommand("!spawngears")
+            Game.RemoveCommand("!dfc")
+            Game.RemoveCommand("!factionlist")
+            Game.RemoveCommand("!joinfaction")
+            Game.RemoveCommand("!joblist")
+            Game.RemoveCommand("!assignjob")
+            Game.RemoveCommand("!gearlist")
+            Game.RemoveCommand("!spawngear")
+            Game.RemoveCommand("!spawngears")
+            Game.RemoveCommand("!spawncharacter")
         end
 
         if SERVER then
@@ -434,92 +419,128 @@ function m:initialize()
     end)
 
     if CLIENT then
-        chat.addcommand {
-            { "!factionlist", "!fl" },
-            help = l10n "ChatCommandFactionList".value,
-            callback = function(_, args)
-                local factionList = moses.keys(self.factions)
-                chat.send { moses.concat(factionList, ', '), color = Color.LightGray }
-            end
-        }
+        Game.AddCommand("!dfc", "", function()
+            local descriptor = LuaUserData.RegisterType "Barotrauma.DebugConsole"
+            LuaUserData.MakeMethodAccessible(descriptor, "ShowHelpMessage")
+            ---@type Barotrauma.DebugConsole
+            local DebugConsole = LuaUserData.CreateStatic "Barotrauma.DebugConsole"
 
-        ---@param identifier string
-        ---@param character Barotrauma.Character
-        local function joinFaction(identifier, character)
-            local faction = self.factions[identifier]
-            if faction then
-                faction:addCharacterTagsFor(character)
-                if faction.onJoined then faction.onJoined(character) end
-            end
-        end
-
-        chat.addcommand {
-            { "!joinfaction", "!jf" },
-            help = l10n "ChatCommandJoinFaction".value,
-            callback = function(_, args)
-                if args[1] and Character.Controlled then
-                    joinFaction(args[1], Character.Controlled)
+            ---@param commandName string
+            local function showHelpMessage(commandName)
+                local command = DebugConsole.FindCommand(commandName)
+                if command then
+                    DebugConsole.ShowHelpMessage(command)
                 end
             end
-        }
 
-        chat.addcommand {
-            { "!joblist", "!jl" },
-            help = l10n "ChatCommandJobList".value,
-            callback = function(_, args)
-                local jobList = moses.keys(self.jobs)
-                chat.send { moses.concat(jobList, ', '), color = Color.LightGray }
-            end
-        }
+            moses {
+                "!factionlist", "!joinfaction",
+                "!joblist", "!assignjob",
+                "!gearlist", "!spawngear", "!spawngears",
+                "!spawncharacter"
+            }:forEachi(showHelpMessage)
+        end, nil, false)
 
-        ---@param identifier string
-        ---@param character Barotrauma.Character
-        local function assignJob(identifier, character)
-            local job = self.jobs[identifier]
-            if job then
-                job:addCharacterTagsFor(character)
-                if job.onAssigned then job.onAssigned(character) end
-                if job.existAnySpawnPointSet then
-                    local spawnPointSet = utils.SelectDynValueWeightedRandom(job.spawnPointSets, job.spawnPointSetWeights)
-                    spawnPointSet:addCharacterTagsFor(character)
-                    local spawnPoint = spawnPointSet:getRandom()
-                    if spawnPoint then
-                        character.TeleportTo(spawnPoint.WorldPosition)
+        Game.AddCommand("!factionlist", "!factionlist: list all factions.", function()
+            local message = moses(self.factions):keys():concat(', '):value()
+            chat.send { message, color = Color.LightGray }
+        end, nil, false)
+
+        Game.AddCommand("!joinfaction", "!joinfaction <identifier>: join the specified faction.",
+            ---@param args string[]
+            function(args)
+                local identifier = args[1]
+                local character = Character.Controlled
+                if identifier and character then
+                    local faction = self.factions[identifier]
+                    if faction then
+                        faction:addCharacterTagsFor(character)
+                        if faction.onJoined then faction.onJoined(character) end
                     end
                 end
+            end,
+            function()
+                return { moses.keys(self.factions) }
+            end,
+            false
+        )
+
+        Game.AddCommand("!joblist", "!joblist: list all jobs.", function()
+            local message = moses(self.jobs):keys():concat(', '):value()
+            chat.send { message, color = Color.LightGray }
+        end, nil, false)
+
+        ---@param jobIdentifier string
+        ---@param factionIdentifier? string
+        ---@return Barotrauma.Character?
+        local function assignJob(jobIdentifier, factionIdentifier)
+            if jobIdentifier then
+                local job = self.jobs[jobIdentifier]
+                if job then
+                    local faction = factionIdentifier and self.factions[factionIdentifier]
+
+                    ---@type dfc.spawnpointset?
+                    local spawnPointSet
+                    ---@type Barotrauma.WayPoint?
+                    local spawnPoint
+                    if job.existAnySpawnPointSet then
+                        spawnPointSet = utils.SelectDynValueWeightedRandom(job.spawnPointSets, job.spawnPointSetWeights)
+                        spawnPoint = spawnPointSet:getRandom()
+                    end
+                    local spawnPosition = spawnPoint and spawnPoint.WorldPosition or Submarine.MainSub.WorldPosition
+
+                    ---@type Barotrauma.Character
+                    local spawnedCharacter
+                    ---@type Barotrauma.CharacterInfo?
+                    local characterInfo
+
+                    local teamType = faction and faction.teamID or CharacterTeamType.Team1
+
+                    if job.characterPrefab.HasCharacterInfo then
+                        local variant = job.jobPrefab and math.random(0, job.jobPrefab.Variants - 1) or 0
+                        characterInfo = CharacterInfo(job.characterPrefab.Name, "DEBUG CHARACTER", nil, job.jobPrefab, variant, RandSync.Unsynced, nil)
+                        characterInfo.TeamID = teamType
+                        spawnedCharacter = Character.Create(characterInfo, spawnPosition, ToolBox.RandomSeed(8))
+                    else
+                        spawnedCharacter = Character.Create(job.characterPrefab, spawnPosition, ToolBox.RandomSeed(8))
+                    end
+
+                    if faction then
+                        faction:addCharacterTagsFor(spawnedCharacter)
+                    end
+                    job:addCharacterTagsFor(spawnedCharacter)
+                    if spawnPointSet then
+                        spawnPointSet:addCharacterTagsFor(spawnedCharacter)
+                    end
+
+                    spawnedCharacter.SetOriginalTeamAndChangeTeam(teamType, true)
+                    spawnedCharacter.GiveJobItems(false, spawnPoint)
+                    spawnedCharacter.GiveIdCardTags(spawnPoint, true)
+
+                    Character.Controlled = spawnedCharacter
+
+                    if faction and faction.onJoined then faction.onJoined(spawnedCharacter) end
+                    if job.onAssigned then job.onAssigned(spawnedCharacter) end
+
+                    return spawnedCharacter
+                end
             end
         end
 
-        chat.addcommand {
-            { "!assignjob", "!aj" },
-            help = l10n "ChatCommandAssignJob".value,
-            callback = function(_, args)
-                if args[1] and Character.Controlled then
-                    assignJob(args[1], Character.Controlled)
-                end
-            end
-        }
+        Game.AddCommand("!assignjob", "!assignjob <jobidentifier> [factionidentifier]: assign the specified.",
+            function(args)
+                assignJob(args[1], args[2])
+            end,
+            function()
+                return { moses.keys(self.jobs), moses.keys(self.factions) }
+            end,
+            false
+        )
 
-        chat.addcommand {
-            { "!assignjobs", "!ajs" },
-            help = l10n "ChatCommandAssignJobs".value,
-            callback = function(_, args)
-                if Character.Controlled then
-                    moses.forEach(self.jobs, function(_, identifier)
-                        assignJob(identifier, Character.Controlled)
-                    end)
-                end
-            end
-        }
-
-        chat.addcommand {
-            { "!gearlist", "!gl" },
-            help = l10n "ChatCommandGearList".value,
-            callback = function(_, args)
-                local gearList = moses.keys(self.gears)
-                chat.send { moses.concat(gearList, ', '), color = Color.LightGray }
-            end
-        }
+        Game.AddCommand("!gearlist", "!gearlist: list all gears.", function()
+            local message = moses(self.gears):keys():concat(', '):value()
+            chat.send { message, color = Color.LightGray }
+        end, nil, false)
 
         ---@param identifier string
         ---@param character Barotrauma.Character
@@ -531,27 +552,58 @@ function m:initialize()
             end
         end
 
-        chat.addcommand {
-            { "!spawngear", "!sg" },
-            help = l10n "ChatCommandSpawnGear".value,
-            callback = function(_, args)
-                if args[1] and Character.Controlled then
-                    spawnGear(args[1], Character.Controlled)
+        Game.AddCommand("!spawngear", "!spawngear <gearidentifier>: spawn the specified gear.",
+            ---@param args string[]
+            function(args)
+                local identifier = args[1]
+                local character = Character.Controlled
+                if identifier and character then
+                    spawnGear(identifier, character)
                 end
-            end
-        }
+            end,
+            function()
+                return { moses.keys(self.gears) }
+            end,
+            false
+        )
 
-        chat.addcommand {
-            { "!spawngears", "!sgs" },
-            help = l10n "ChatCommandSpawnGears".value,
-            callback = function(_, args)
-                if Character.Controlled then
-                    moses.forEach(self.gears, function(_, identifier)
-                        spawnGear(identifier, Character.Controlled)
-                    end)
+        Game.AddCommand("!spawngears", "!spawngears: spawn all gears.",
+            function()
+                local character = Character.Controlled
+                if character then
+                    moses(self.gears)
+                        :keys()
+                        :forEachi(function(identifier)
+                            spawnGear(identifier, character)
+                        end)
                 end
-            end
-        }
+            end,
+            function()
+                return { moses.keys(self.gears) }
+            end,
+            false
+        )
+
+        Game.AddCommand("!spawncharacter", "!spawncharacter <factionidentifier> <jobidentifier> <gearidentifier>: spawn a character with the specified faction, job and gear.",
+            ---@param args string[]
+            function(args)
+                local character = Character.Controlled
+                if #args >= 3 and character then
+                    local spawnedCharacter = assignJob(args[2], args[1])
+                    if spawnedCharacter then
+                        spawnGear(args[3], spawnedCharacter)
+                    end
+                end
+            end,
+            function()
+                return {
+                    moses.keys(self.factions),
+                    moses.keys(self.jobs),
+                    moses.keys(self.gears),
+                }
+            end,
+            false
+        )
     end
 
     if SERVER then
@@ -621,9 +673,20 @@ function m:initialize()
             interval = 60,
             ingame = false,
             function()
-                if self._selectionMode == selectionModeNone then
-                    self:selectionModeVote()
-                else
+                local decideWay = DFC.SelectionModeDecideWay.Value
+                if decideWay == "Manual" then
+                    self._selectionMode = selectionModeManual
+                elseif decideWay == "Random" then
+                    self._selectionMode = selectionModeRandom
+                elseif decideWay == "ManualThenRandom" then
+                    self._selectionMode = Timer.Time < self._selectionModeTimer and selectionModeManual or selectionModeRandom
+                elseif decideWay == "Vote" then
+                    if self._selectionMode == selectionModeNone then
+                        self:selectionModeVote()
+                    end
+                end
+
+                if self._selectionMode ~= selectionModeNone then
                     self:update()
                 end
             end
@@ -746,7 +809,7 @@ function m:selectionModeVote()
                     ---@param option_index integer
                     ---@param responder Barotrauma.Networking.Client
                     function(option_index, responder)
-                        if self._selectionMode ~= selectionModeNone then return end
+                        if DFC.SelectionModeDecideWay.Value ~= "Vote" or self._selectionMode ~= selectionModeNone then return end
 
                         local responderAccountId = responder.AccountId.StringRepresentation
                         if option_index == 255 then
@@ -984,8 +1047,8 @@ function m:update()
                             responder.SetClientCharacter(spawnedCharacter)
                             -- spawnedCharacter.SetOwnerClient(responder)
                             responder.TeamID = spawnedCharacter.TeamID
-                            if joinedFaction.onJoined then joinedFaction.onJoined(spawnedCharacter) end
-                            if job.onAssigned then job.onAssigned(spawnedCharacter) end
+                            if joinedFaction.onJoined then joinedFaction.onJoined(spawnedCharacter, responder) end
+                            if job.onAssigned then job.onAssigned(spawnedCharacter, responder) end
 
                             job:addParticipator(spawnedCharacter, joinedFaction)
                             job:modifyTickets(-1, joinedFaction)
@@ -1109,7 +1172,7 @@ function m:update()
                             and gear:participatory(characterJob.gears, characterFaction)
                         then
                             gear:addCharacterTagsFor(clientCharacter)
-                            if gear.action then gear.action(clientCharacter) end
+                            if gear.action then gear.action(clientCharacter, responder) end
 
                             gear:addParticipator(clientCharacter, characterFaction)
                             gear:modifyTickets(-1, characterFaction)
