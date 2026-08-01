@@ -184,7 +184,7 @@
   <dfc.respawningin>阵营“[faction]”的角色将在[time]后重生……</dfc.respawningin>
   <dfc.respawned>阵营“[faction]”的角色已重生：[clientNames]</dfc.respawned>
 
-  <DSSIFactionCraft.SelectionModeDecideWay.DisplayName>分队形式决定方式</DSSIFactionCraft.SelectionModeDecideWay.DisplayName>
+  <DSSIFactionCraft.SelectionModeDecideWay.DisplayName>分队模式决定方式</DSSIFactionCraft.SelectionModeDecideWay.DisplayName>
   <DSSIFactionCraft.SelectionModeDecideWay.Tooltip>[Manual] 玩家手动选择阵营\n[Random] 玩家随机选择阵营\n[ManualThenRandom] 先手动，超时后更改为随机\n[Vote] 由玩家投票确认分队模式</DSSIFactionCraft.SelectionModeDecideWay.Tooltip>
   <DSSIFactionCraft.SelectionModeDecideWay.DisplayCategory>DFC</DSSIFactionCraft.SelectionModeDecideWay.DisplayCategory>
 </infotexts>

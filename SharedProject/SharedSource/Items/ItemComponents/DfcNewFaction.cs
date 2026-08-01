@@ -28,6 +28,9 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable(MinValueInt = 0), Serialize(100, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public int MaxLives { get; set; }
 
+        [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(client: Barotrauma.Networking.Client)")]
+        public string OnPlayerParticipateChunk { get; set; }
+
         [InGameEditable, Serialize("", IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.", description: "return a closure with the prototype of fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)")]
         public string OnJoinedChunk { get; set; }
 
@@ -63,6 +66,7 @@ namespace DSSIFactionCraft.Items.Components
             dynValue.Table["identifier"] = component.Identifier.IsNullOrEmpty() ? DynValue.Nil : component.Identifier;
             dynValue.Table["teamID"] = component.TeamID;
             dynValue.Table["maxLives"] = component.MaxLives;
+            dynValue.Table["onPlayerParticipateChunk"] = component.OnPlayerParticipateChunk;
             dynValue.Table["onJoinedChunk"] = component.OnJoinedChunk;
             dynValue.Table["jobs"] = LuaUtils.SplitToTable(component.Jobs, ',', StringSplitOptions.RemoveEmptyEntries);
             dynValue.Table["participantTickets"] = component.ParticipantTickets;

@@ -3,6 +3,7 @@
 ---@field identifier Barotrauma.CharacterTeamType
 ---@field teamID Barotrauma.CharacterTeamType
 ---@field maxLives integer
+---@field onPlayerParticipate? fun(client: Barotrauma.Networking.Client)
 ---@field onJoined? fun(character:Barotrauma.Character, client?: Barotrauma.Networking.Client)
 ---@field sort integer
 ---@field shouldSortJobs boolean

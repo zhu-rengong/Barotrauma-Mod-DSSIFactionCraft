@@ -46,6 +46,7 @@ local selectionModeRandom = 2
 ---@field _cachedJobOptions { [dfc.faction]:string[] }
 ---@field _cachedGears { [dfc.faction]: { [dfc.job]:dfc.gear[] } }
 ---@field _cachedGearOptions { [dfc.faction]: { [dfc.job]:string[] } }
+---@field selectionModeDecideWay string
 ---@field _selectionModeManualVotes integer
 ---@field _selectionModeRandomVotes integer
 ---@field _selectionMode integer
@@ -66,6 +67,7 @@ function m:__init()
     self.jobs = {}
     self.gears = {}
     self:resetRoundDatas()
+    self.selectionModeDecideWay = ""
     self.allowMidRoundJoin = true
     self.allowRespawn = true
     self.autoParticipateWhenNoChoices = true
@@ -276,6 +278,13 @@ function m:trySortFactions()
     end
 end
 
+---@return string
+function m:getSelectionModeDecideWay()
+    return #self.selectionModeDecideWay > 0
+        and self.selectionModeDecideWay
+        or DFC.SelectionModeDecideWay.Value
+end
+
 function m:initialize()
     DFC.Loaded = self
 
@@ -366,6 +375,7 @@ function m:initialize()
                     faction.participantNumberLimit = parameters.participantNumberLimit
                     faction.participantWeight = parameters.participantWeight
                     faction.characterTags = parameters.characterTags
+                    loadObjectFunc(faction, "onPlayerParticipate", parameters, "onPlayerParticipateChunk")
                     loadObjectFunc(faction, "onJoined", parameters, "onJoinedChunk")
                     for _, identifier in ipairs(parameters.jobs) do faction:addJob(identifier, false) end
                     faction.sort = parameters.sort
@@ -673,7 +683,8 @@ function m:initialize()
             interval = 60,
             ingame = false,
             function()
-                local decideWay = DFC.SelectionModeDecideWay.Value
+                local decideWay = self:getSelectionModeDecideWay()
+
                 if decideWay == "Manual" then
                     self._selectionMode = selectionModeManual
                 elseif decideWay == "Random" then
@@ -809,7 +820,7 @@ function m:selectionModeVote()
                     ---@param option_index integer
                     ---@param responder Barotrauma.Networking.Client
                     function(option_index, responder)
-                        if DFC.SelectionModeDecideWay.Value ~= "Vote" or self._selectionMode ~= selectionModeNone then return end
+                        if self:getSelectionModeDecideWay() ~= "Vote" or self._selectionMode ~= selectionModeNone then return end
 
                         local responderAccountId = responder.AccountId.StringRepresentation
                         if option_index == 255 then
@@ -825,7 +836,7 @@ function m:selectionModeVote()
 
                         local maxVotes = #getVoters()
 
-                        local boardcastMessage = l10n "BoardcastSlectionModeVotes":format(
+                        local boardcastMessage = l10n "BoardcastSelectionModeVotes":format(
                             ("%.0f"):format(100 * self._selectionModeManualVotes / maxVotes),
                             ("%.0f"):format(100 * self._selectionModeRandomVotes / maxVotes)
                         )
@@ -884,6 +895,7 @@ function m:update()
                             self:refreshCacheFactions()
                             self._remainingLives[responderAccountId] = faction.maxLives
                             self._joinedFaction[responderAccountId] = faction
+                            if faction.onPlayerParticipate then faction.onPlayerParticipate(responder) end
 
                             chat.send { l10n "PrivateJoinFactionSuccess":format(
                                 l10n { "FactionDisplayName", faction.identifier }.altvalue
@@ -928,15 +940,17 @@ function m:update()
                         end
                     else
                         pretaskJoinFaction()
-                        local option_index
-                        for _, i in ipairs(moses.shuffle(moses.range(#contextFactions))) do
-                            if contextFactions[i]:participatory(self.factions) then
-                                option_index = i - 1
-                                break
+                        if #contextFactions > 0 then
+                            local option_index
+                            for _, i in ipairs(moses.shuffle(moses.range(#contextFactions))) do
+                                if contextFactions[i]:participatory(self.factions) then
+                                    option_index = i - 1
+                                    break
+                                end
                             end
-                        end
-                        if option_index then
-                            chooseCallback(option_index, client)
+                            if option_index then
+                                chooseCallback(option_index, client)
+                            end
                         end
                     end
                 elseif joinedFaction.allowRespawn

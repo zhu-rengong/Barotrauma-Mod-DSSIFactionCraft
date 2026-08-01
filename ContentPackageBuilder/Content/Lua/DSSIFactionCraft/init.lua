@@ -85,13 +85,15 @@ Hook.Add("loaded", function()
                     dfc = New 'dfc' ()
                     for attribute in dfc_initializer.Attributes() do
                         local attributeName = attribute.Name.LocalName:lower()
-                        local attributeValue = attribute.Value:lower()
+                        local attributeValue = attribute.Value
                         if attributeName == "allowrespawn" then
-                            dfc.allowRespawn = attributeValue == "true"
+                            dfc.allowRespawn = attributeValue:lower() == "true"
                         elseif attributeName == "allowmidroundjoin" then
-                            dfc.allowMidRoundJoin = attributeValue == "true"
+                            dfc.allowMidRoundJoin = attributeValue:lower() == "true"
                         elseif attributeName == "autoparticipatewhennochoices" then
-                            dfc.autoParticipateWhenNoChoices = attributeValue == "true"
+                            dfc.autoParticipateWhenNoChoices = attributeValue:lower() == "true"
+                        elseif attributeName == "selectionmodedecideway" then
+                            dfc.selectionModeDecideWay = attributeValue
                         end
                     end
                     dfc:initialize()

@@ -5,7 +5,7 @@ return {
     PromptVoteForSelectionModes = "Please vote for the team selection method.",
     SelectionModeManual = "Manual",
     SelectionModeRandom = "Random",
-    BoardcastSlectionModeVotes = "Team selection votes (Manual: {1}%, Random: {2}%)",
+    BoardcastSelectionModeVotes = "Team selection votes (Manual: {1}%, Random: {2}%)",
     SelectionModeManualApprovedViaOverHalfVoters = "The 'Manual' team selection method has been approved by over half of voters!",
     SelectionModeManualApprovedViaMajorityVoters = "The 'Manual' team selection method has been approved by majority vote!",
     SelectionModeManualApprovedViaRiggedMatch = "The 'Manual' team selection method was approved through rigging!",
