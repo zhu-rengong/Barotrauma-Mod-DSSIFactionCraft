@@ -1,5 +1,7 @@
 # Changelog
 ## DFC
+### 3.1.7
+- 添加钩子*onPretaskJoinFaction*，调用于玩家加入阵营前，可以在此处修改玩家能加入的阵营，传递的参数为DFC实例、玩家客户端、可选择的阵营列表、对话框选项文本。
 ### 3.1.6
 - 允许在内置地图组件**DFC初始化器**中设置分队模式决定方式*SelectionModeDecideWay*（字符串类型，有效值“Manual”、“Random”、“ManualThenRandom”、“Vote”），为空时回退为Mod中的配置。
 - 内置地图组件**新增派系**添加回调 *onPlayerParticipate*，在玩家参与到阵营时调用，传入参数为客户端。

@@ -873,6 +873,7 @@ function m:update()
                     local function pretaskJoinFaction()
                         contextFactions = moses.clone(self._cachedFactions, true)
                         contextFactionOptions = moses.clone(self._cachedFactionOptions, true)
+                        Hook.Call("onPretaskJoinFaction", self, client, contextFactions, contextFactionOptions)
                     end
 
                     ---@param option_index integer
