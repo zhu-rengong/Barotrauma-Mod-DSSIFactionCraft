@@ -230,7 +230,7 @@ end
 ---@param identifier string
 ---@param teamID Barotrauma.CharacterTeamType
 ---@param maxLives? integer
----@param onJoined? fun(character:Barotrauma.Character)
+---@param onJoined? fun(character: Barotrauma.Character)
 function m:newFaction(identifier, teamID, maxLives, onJoined)
     local faction = New 'dfc.faction' (identifier, teamID, maxLives, onJoined)
     self.factions[identifier] = faction
@@ -244,7 +244,7 @@ end
 
 ---@param identifier string
 ---@param name? string
----@param onAssigned? fun(character:Barotrauma.Character)
+---@param onAssigned? fun(character: Barotrauma.Character)
 ---@param liveConsumption? integer
 ---@param jobName? string
 ---@param speciesName? string
@@ -256,7 +256,7 @@ function m:newJob(identifier, name, onAssigned, liveConsumption, jobName, specie
 end
 
 ---@param identifier string
----@param action? fun(character:Barotrauma.Character)
+---@param action? fun(character: Barotrauma.Character)
 function m:newGear(identifier, action)
     local gear = New 'dfc.gear' (identifier, action)
     self.gears[identifier] = gear
@@ -678,27 +678,32 @@ function m:initialize()
 
         self._selectionModeTimer = Timer.Time + 30.0
 
+        local thinkTimer = 0.0
+        local thinkInterval = 1.0
         DSSI.Think {
             identifier = "DFC",
-            interval = 60,
             ingame = false,
-            function()
-                local decideWay = self:getSelectionModeDecideWay()
+            function(deltaTime)
+                thinkTimer = thinkTimer + deltaTime
+                if thinkTimer >= thinkInterval then
+                    thinkTimer = thinkTimer - thinkInterval
+                    local decideWay = self:getSelectionModeDecideWay()
 
-                if decideWay == "Manual" then
-                    self._selectionMode = selectionModeManual
-                elseif decideWay == "Random" then
-                    self._selectionMode = selectionModeRandom
-                elseif decideWay == "ManualThenRandom" then
-                    self._selectionMode = Timer.Time < self._selectionModeTimer and selectionModeManual or selectionModeRandom
-                elseif decideWay == "Vote" then
-                    if self._selectionMode == selectionModeNone then
-                        self:selectionModeVote()
+                    if decideWay == "Manual" then
+                        self._selectionMode = selectionModeManual
+                    elseif decideWay == "Random" then
+                        self._selectionMode = selectionModeRandom
+                    elseif decideWay == "ManualThenRandom" then
+                        self._selectionMode = Timer.Time < self._selectionModeTimer and selectionModeManual or selectionModeRandom
+                    elseif decideWay == "Vote" then
+                        if self._selectionMode == selectionModeNone then
+                            self:selectionModeVote()
+                        end
                     end
-                end
 
-                if self._selectionMode ~= selectionModeNone then
-                    self:update()
+                    if self._selectionMode ~= selectionModeNone then
+                        self:update(thinkInterval)
+                    end
                 end
             end
         }
@@ -820,7 +825,7 @@ function m:selectionModeVote()
                     ---@param option_index integer
                     ---@param responder Barotrauma.Networking.Client
                     function(option_index, responder)
-                        if self:getSelectionModeDecideWay() ~= "Vote" or self._selectionMode ~= selectionModeNone then return end
+                        if self:getSelectionModeDecideWay() ~= "Vote" or self._selectionMode ~= selectionModeNone or not Game.RoundStarted then return end
 
                         local responderAccountId = responder.AccountId.StringRepresentation
                         if option_index == 255 then
@@ -852,7 +857,8 @@ function m:selectionModeVote()
     end
 end
 
-function m:update()
+---@param deltaTime number
+function m:update(deltaTime)
     if not Game.RoundStarted or not self.existAnyFaction then return end
 
     local disallowSpectating = not Game.ServerSettings.AllowSpectating
@@ -880,7 +886,7 @@ function m:update()
                     ---@param responder Barotrauma.Networking.Client
                     local function chooseCallback(option_index, responder)
                         local responderAccountId = responder.AccountId.StringRepresentation
-                        if option_index == 255 then
+                        if option_index == 255 or not Game.RoundStarted then
                             self._promptedJoinFaction[responderAccountId] = nil
                             return
                         end
@@ -974,7 +980,7 @@ function m:update()
                     local chooseCallback = function(option_index, responder)
                         ---@type string
                         local responderAccountId = responder.AccountId.StringRepresentation
-                        if option_index == 255 then
+                        if option_index == 255 or not Game.RoundStarted then
                             self._promptedAssignJob[responderAccountId] = nil
                             return
                         end
@@ -1176,7 +1182,7 @@ function m:update()
 
                     local chooseCallback = function(option_index, responder)
                         local responderAccountId = responder.AccountId.StringRepresentation
-                        if option_index == 255 then
+                        if option_index == 255 or not Game.RoundStarted then
                             self._promptedChooseGear[clientCharacter] = nil
                             return
                         end
