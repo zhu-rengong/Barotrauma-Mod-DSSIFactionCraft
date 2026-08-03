@@ -55,6 +55,12 @@ namespace DSSIFactionCraft.Items.Components
         [InGameEditable, Serialize(false, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
         public bool DisallowChangeJob { get; set; }
 
+        [InGameEditable, Serialize(true, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
+        public bool GiveJobItems { get; set; }
+
+        [InGameEditable, Serialize(true, IsPropertySaveable.Yes, alwaysUseInstanceValues: true, translationTextTag: "sp.")]
+        public bool GiveIdCardTags { get; set; }
+
         public static DynValue GetParameterTable(Item item)
         {
             var component = item.GetComponent<DfcNewJob>();
@@ -76,6 +82,8 @@ namespace DSSIFactionCraft.Items.Components
             dynValue.Table["notifyTeammates"] = component.NotifyTeammates;
             dynValue.Table["inhertCharacterInfo"] = component.InhertCharacterInfo;
             dynValue.Table["disallowChangeJob"] = component.DisallowChangeJob;
+            dynValue.Table["giveJobItems"] = component.GiveJobItems;
+            dynValue.Table["giveIdCardTags"] = component.GiveIdCardTags;
             return dynValue;
         }
 

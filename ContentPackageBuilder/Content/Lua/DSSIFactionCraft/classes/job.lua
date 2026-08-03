@@ -14,6 +14,8 @@
 ---@field gearCount integer
 ---@field jobPrefab? Barotrauma.JobPrefab
 ---@field characterPrefab? Barotrauma.CharacterPrefab
+---@field giveJobItems boolean
+---@field giveIdCardTags boolean
 ---@field existAnySpawnPointSet boolean
 ---@field spawnPointSets dfc.spawnpointset[]
 ---@field spawnPointSetWeights number[]
@@ -61,6 +63,9 @@ function m:__init(identifier, name, onAssigned, liveConsumption, jobName, specie
     if not self.characterPrefab then
         self.characterPrefab = CharacterPrefab.HumanPrefab
     end
+
+    self.giveJobItems = true
+    self.giveIdCardTags = true
 
     self.spawnPointSets = {}
     self.spawnPointSetWeights = {}

@@ -361,6 +361,8 @@ function m:initialize()
                     if parameters.notifyTeammates then job.notifyTeammates = parameters.notifyTeammates end
                     if parameters.inhertCharacterInfo then job.inhertCharacterInfo = parameters.inhertCharacterInfo end
                     if parameters.disallowChangeJob then job.disallowChangeJob = parameters.disallowChangeJob end
+                    job.giveJobItems = parameters.giveJobItems
+                    job.giveIdCardTags = parameters.giveIdCardTags
                 end
             end
         end
@@ -508,7 +510,7 @@ function m:initialize()
 
                     if job.characterPrefab.HasCharacterInfo then
                         local variant = job.jobPrefab and math.random(0, job.jobPrefab.Variants - 1) or 0
-                        characterInfo = CharacterInfo(job.characterPrefab.Name, "DEBUG CHARACTER", nil, job.jobPrefab, variant, RandSync.Unsynced, nil)
+                        characterInfo = CharacterInfo(job.characterPrefab.Name, nil, nil, job.jobPrefab, variant, RandSync.Unsynced, nil)
                         characterInfo.TeamID = teamType
                         spawnedCharacter = Character.Create(characterInfo, spawnPosition, ToolBox.RandomSeed(8))
                     else
@@ -524,10 +526,13 @@ function m:initialize()
                     end
 
                     spawnedCharacter.SetOriginalTeamAndChangeTeam(teamType, true)
-                    spawnedCharacter.GiveJobItems(false, spawnPoint)
-                    spawnedCharacter.GiveIdCardTags(spawnPoint, true)
+                    if job.giveJobItems then spawnedCharacter.GiveJobItems(false, spawnPoint) end
+                    if job.giveIdCardTags then spawnedCharacter.GiveIdCardTags(spawnPoint, true) end
+                    if characterInfo then characterInfo.StartItemsGiven = true end
 
                     Character.Controlled = spawnedCharacter
+
+                    Game.GameSession.CrewManager.AddCharacter(spawnedCharacter)
 
                     if faction and faction.onJoined then faction.onJoined(spawnedCharacter) end
                     if job.onAssigned then job.onAssigned(spawnedCharacter) end
@@ -1032,10 +1037,10 @@ function m:update(deltaTime)
                                 end
                             end
 
-                            if spawnedCharacter == nil then
-                                ---@type Barotrauma.CharacterInfo?
-                                local characterInfo
+                            ---@type Barotrauma.CharacterInfo?
+                            local characterInfo
 
+                            if spawnedCharacter == nil then
                                 if job.characterPrefab.HasCharacterInfo then
                                     local variant = job.jobPrefab and math.random(0, job.jobPrefab.Variants - 1) or 0
                                     characterInfo = CharacterInfo(job.characterPrefab.Name, responder.Name, nil, job.jobPrefab, variant, RandSync.Unsynced, nil)
@@ -1063,8 +1068,9 @@ function m:update(deltaTime)
                             end
 
                             spawnedCharacter.SetOriginalTeamAndChangeTeam(joinedFaction.teamID, true)
-                            spawnedCharacter.GiveJobItems(false, spawnPoint)
-                            spawnedCharacter.GiveIdCardTags(spawnPoint, true)
+                            if job.giveJobItems then spawnedCharacter.GiveJobItems(false, spawnPoint) end
+                            if job.giveIdCardTags then spawnedCharacter.GiveIdCardTags(spawnPoint, true) end
+                            if characterInfo then characterInfo.StartItemsGiven = true end
                             responder.SetClientCharacter(spawnedCharacter)
                             -- spawnedCharacter.SetOwnerClient(responder)
                             responder.TeamID = spawnedCharacter.TeamID
