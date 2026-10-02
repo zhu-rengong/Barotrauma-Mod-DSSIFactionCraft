@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Items>
-  <Item name="DFC Template" identifier="dfc_template" category="Misc" subcategory="dfc" tags="dfc_mapdevtool" allowedlinks="structure,item" spritecolor="0.1,0.1,0.1,0.7" linkable="true" resizehorizontal="true" resizevertical="true">
+  <Item name="DFC Template" identifier="dfc_template" category="Misc" subcategory="dfc" tags="dfc_mapdevtool" allowedlinks="structure,item" spritecolor="0.1,0.1,0.1,0.7" linkable="true"
+    resizehorizontal="true" resizevertical="true" scale="100.0" minscale="100.0" maxscale="100.0" size="32,16">
     <Sprite texture="Content/Items/Labels/labels.png" depth="0.850" sourcerect="4,100,28,24" />
     <ItemLabel text="DFC Template" ignorelocalization="true" textscale="0.75" textcolor="255,255,255,255" />
   </Item>
